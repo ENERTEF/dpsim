@@ -1,0 +1,28 @@
+# sogno/dpsim:dev is built by dpsim-git/packaging/Docker/Dockerfile.dev
+ARG BASE_IMAGE=sogno/dpsim:dev
+
+FROM ${BASE_IMAGE}
+
+ARG CMAKE_OPTS
+ARG MAKE_OPTS=-j4
+
+LABEL \
+	org.opencontainers.image.title = "DPsim" \
+	org.opencontainers.image.licenses = "MPL 2.0" \
+	org.opencontainers.image.url = "http://dpsim.fein-aachen.org/" \
+	org.opencontainers.image.source = "https://github.com/sogno-platform/dpsim"
+
+ADD . /dpsim
+
+RUN rm -rf /dpsim/build && mkdir /dpsim/build
+WORKDIR /dpsim/build
+RUN cmake ${CMAKE_OPTS} ..
+RUN make ${MAKE_OPTS} UDP_CIGRE_MV_PowerFlowTest_LoadProfiles
+
+EXPOSE 1883
+
+WORKDIR /
+RUN chmod +x /dpsim/configs/shmem_CIGRE_MV_PF/start_Shmem_CIGRE_MV_PowerFlowTest_LoadProfiles.sh
+RUN dnf install procps -y
+
+CMD ["sh", "-c", "sleep 5 && cd /dpsim && ./configs/shmem_CIGRE_MV_PF/start_Shmem_CIGRE_MV_PowerFlowTest_LoadProfiles.sh"]
