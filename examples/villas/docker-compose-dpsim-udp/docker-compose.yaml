@@ -7,7 +7,7 @@ services:
       PYTHONPATH: /dpsim/build:/dpsim/build/Source/Python:/dpsim/Source/Python
     ports:
       - "8888:8888"
-      - "31516:31516/udp"
+      - "31809:31809/udp"
     # volumes:
     #   - ../../../:/dpsim
     privileged: true

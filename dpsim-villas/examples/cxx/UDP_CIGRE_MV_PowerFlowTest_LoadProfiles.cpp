@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
   // Register exportable node voltages
   std::string signalOutConfig = fmt::format(R"STRING(
     "out": {{
-      "address": "137.226.248.61:31516",
+      "address": "137.226.248.61:31809",
       "signals": [)STRING");
 
   for (size_t i = 0; i < sys.mNodes.size(); ++i) {
