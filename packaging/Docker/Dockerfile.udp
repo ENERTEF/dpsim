@@ -21,8 +21,10 @@ RUN make ${MAKE_OPTS} UDP_CIGRE_MV_PowerFlowTest_LoadProfiles
 
 EXPOSE 1883
 
+ENV RECEIVER_IP localhost
+ENV UDP_PORT 8080
 WORKDIR /
 RUN chmod +x /dpsim/configs/shmem_CIGRE_MV_PF/start_Shmem_CIGRE_MV_PowerFlowTest_LoadProfiles.sh
-RUN dnf install procps -y
+RUN dnf install procps jq -y
 
 CMD ["sh", "-c", "sleep 5 && cd /dpsim && ./configs/shmem_CIGRE_MV_PF/start_Shmem_CIGRE_MV_PowerFlowTest_LoadProfiles.sh"]

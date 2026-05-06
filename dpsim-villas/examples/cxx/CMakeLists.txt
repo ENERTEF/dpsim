@@ -21,7 +21,6 @@ set(DPSIM_VILLAS_EXAMPLE_SOURCES
 	FpgaCosim3PhInfiniteBus.cpp
 	FpgaCosimulation.cpp
 	SharedMemExample.cpp
-	UDPExample.cpp
 	UDP_CIGRE_MV_PowerFlowTest_LoadProfiles.cpp
 	# ShmemExample.cpp
 	# ShmemDistributedReference.cpp

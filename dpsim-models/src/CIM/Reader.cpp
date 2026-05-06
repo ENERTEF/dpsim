@@ -245,7 +245,7 @@ void Reader::processSvVoltage(CIMPP::SvVoltage *volt) {
     SPDLOG_LOGGER_WARN(mSLog,
                        "SvVoltage references Topological Node {}"
                        " missing from mTopNodes, ignoring",
-                       node->mRID);
+                       node->mRID.value);
     return;
   }
 
@@ -278,7 +278,7 @@ void Reader::processSvPowerFlow(CIMPP::SvPowerFlow *flow) {
       Complex(Reader::unitValue(flow->p.value, UnitMultiplier::M),
               Reader::unitValue(flow->q.value, UnitMultiplier::M)));
 
-  SPDLOG_LOGGER_WARN(mSLog, "Terminal {}: {} W + j {} Var", term->mRID,
+  SPDLOG_LOGGER_WARN(mSLog, "Terminal {}: {} W + j {} Var", term->mRID.value,
                      mPowerflowTerminals[term->mRID]->singleActivePower(),
                      mPowerflowTerminals[term->mRID]->singleReactivePower());
 }
@@ -327,7 +327,7 @@ Matrix::Index Reader::mapTopologicalNode(String mrid) {
 
 TopologicalPowerComp::Ptr
 Reader::mapEnergyConsumer(CIMPP::EnergyConsumer *consumer) {
-  SPDLOG_LOGGER_INFO(mSLog, "    Found EnergyConsumer {}", consumer->name);
+  SPDLOG_LOGGER_INFO(mSLog, "    Found EnergyConsumer {}", consumer->name.value);
   if (mDomain == Domain::EMT) {
     if (mPhase == PhaseType::ABC) {
       return std::make_shared<EMT::Ph3::RXLoad>(consumer->mRID, consumer->name,
@@ -359,7 +359,7 @@ Reader::mapEnergyConsumer(CIMPP::EnergyConsumer *consumer) {
 TopologicalPowerComp::Ptr Reader::mapACLineSegment(CIMPP::ACLineSegment *line) {
   SPDLOG_LOGGER_INFO(mSLog,
                      "    Found ACLineSegment {} r={} x={} bch={} gch={}",
-                     line->name, (float)line->r.value, (float)line->x.value,
+                     line->name.value, (float)line->r.value, (float)line->x.value,
                      (float)line->bch.value, (float)line->gch.value);
 
   Real resistance = line->r.value;
@@ -417,10 +417,10 @@ Reader::mapPowerTransformer(CIMPP::PowerTransformer *trans) {
     SPDLOG_LOGGER_WARN(
         mSLog,
         "PowerTransformer {} does not have exactly two windings, ignoring",
-        trans->name);
+        trans->name.value);
     return nullptr;
   }
-  SPDLOG_LOGGER_INFO(mSLog, "Found PowerTransformer {}", trans->name);
+  SPDLOG_LOGGER_INFO(mSLog, "Found PowerTransformer {}", trans->name.value);
 
   // assign transformer ends
   CIMPP::PowerTransformerEnd *end1 = nullptr, *end2 = nullptr;
@@ -434,7 +434,7 @@ Reader::mapPowerTransformer(CIMPP::PowerTransformer *trans) {
   }
 
   // setting default values for non-set resistances and reactances
-  SPDLOG_LOGGER_INFO(mSLog, "    PowerTransformerEnd_1 {}", end1->name);
+  SPDLOG_LOGGER_INFO(mSLog, "    PowerTransformerEnd_1 {}", end1->name.value);
   SPDLOG_LOGGER_INFO(mSLog, "    Srated={} Vrated={}",
                      (float)end1->ratedS.value, (float)end1->ratedU.value);
   try {
@@ -455,7 +455,7 @@ Reader::mapPowerTransformer(CIMPP::PowerTransformer *trans) {
                        "default value of X={}",
                        (float)end1->x.value);
   }
-  SPDLOG_LOGGER_INFO(mSLog, "    PowerTransformerEnd_2 {}", end2->name);
+  SPDLOG_LOGGER_INFO(mSLog, "    PowerTransformerEnd_2 {}", end2->name.value);
   SPDLOG_LOGGER_INFO(mSLog, "    Srated={} Vrated={}",
                      (float)end2->ratedS.value, (float)end2->ratedU.value);
   try {
@@ -482,7 +482,7 @@ Reader::mapPowerTransformer(CIMPP::PowerTransformer *trans) {
         mSLog,
         "    PowerTransformerEnds of {} come with distinct rated power values. "
         "Using rated power of PowerTransformerEnd_1.",
-        trans->name);
+        trans->name.value);
   }
   Real ratedPower = unitValue(end1->ratedS.value, UnitMultiplier::M);
   Real voltageNode1 = unitValue(end1->ratedU.value, UnitMultiplier::k);
@@ -570,7 +570,7 @@ Reader::mapPowerTransformer(CIMPP::PowerTransformer *trans) {
 
 TopologicalPowerComp::Ptr
 Reader::mapSynchronousMachine(CIMPP::SynchronousMachine *machine) {
-  SPDLOG_LOGGER_INFO(mSLog, "    Found  Synchronous machine {}", machine->name);
+  SPDLOG_LOGGER_INFO(mSLog, "    Found  Synchronous machine {}", machine->name.value);
 
   if (mDomain == Domain::DP) {
     SPDLOG_LOGGER_INFO(mSLog, "    Create generator in DP domain.");
@@ -591,7 +591,7 @@ Reader::mapSynchronousMachine(CIMPP::SynchronousMachine *machine) {
         if (CIMPP::SynchronousMachineTimeConstantReactance *genDyn =
                 dynamic_cast<CIMPP::SynchronousMachineTimeConstantReactance *>(
                     obj)) {
-          if (genDyn->SynchronousMachine->mRID == machine->mRID) {
+          if (genDyn->SynchronousMachine->mRID.value == machine->mRID.value) {
             // stator
             Real Rs = genDyn->statorResistance.value;
             Real Ll = genDyn->statorLeakageReactance.value;
@@ -727,7 +727,7 @@ Reader::mapSynchronousMachine(CIMPP::SynchronousMachine *machine) {
         if (CIMPP::SynchronousMachineTimeConstantReactance *genDyn =
                 dynamic_cast<CIMPP::SynchronousMachineTimeConstantReactance *>(
                     obj)) {
-          if (genDyn->SynchronousMachine->mRID == machine->mRID) {
+          if (genDyn->SynchronousMachine->mRID.value == machine->mRID.value) {
             // stator
             Real Rs = genDyn->statorResistance.value;
             Real Ll = genDyn->statorLeakageReactance.value;
@@ -816,7 +816,7 @@ Reader::mapSynchronousMachine(CIMPP::SynchronousMachine *machine) {
         if (CIMPP::GeneratingUnit *genUnit =
                 dynamic_cast<CIMPP::GeneratingUnit *>(obj)) {
           for (auto syncGen : genUnit->RotatingMachine) {
-            if (syncGen->mRID == machine->mRID) {
+            if (syncGen->mRID.value == machine->mRID.value) {
               // Check whether relevant input data are set, otherwise set default values
               Real setPointActivePower = 0;
               Real setPointVoltage = 0;
@@ -869,7 +869,7 @@ Reader::mapSynchronousMachine(CIMPP::SynchronousMachine *machine) {
         }
       }
       SPDLOG_LOGGER_INFO(mSLog, "no corresponding initial power for {}",
-                         machine->name);
+                         machine->name.value);
       return std::make_shared<SP::Ph1::SynchronGenerator>(
           machine->mRID, machine->name, mComponentLogLevel);
     } else if (mGeneratorType == GeneratorType::None) {
@@ -894,7 +894,7 @@ Reader::mapSynchronousMachine(CIMPP::SynchronousMachine *machine) {
         if (CIMPP::SynchronousMachineTimeConstantReactance *genDyn =
                 dynamic_cast<CIMPP::SynchronousMachineTimeConstantReactance *>(
                     obj)) {
-          if (genDyn->SynchronousMachine->mRID == machine->mRID) {
+          if (genDyn->SynchronousMachine->mRID.value == machine->mRID.value) {
 
             // stator
             Real Rs = genDyn->statorResistance.value;
@@ -1012,7 +1012,7 @@ Reader::mapSynchronousMachine(CIMPP::SynchronousMachine *machine) {
 TopologicalPowerComp::Ptr
 Reader::mapExternalNetworkInjection(CIMPP::ExternalNetworkInjection *extnet) {
   SPDLOG_LOGGER_INFO(mSLog, "Found External Network Injection {}",
-                     extnet->name);
+                     extnet->name.value);
 
   Real baseVoltage = determineBaseVoltageAssociatedWithEquipment(extnet);
 
@@ -1070,7 +1070,7 @@ Reader::mapExternalNetworkInjection(CIMPP::ExternalNetworkInjection *extnet) {
 
 TopologicalPowerComp::Ptr
 Reader::mapEquivalentShunt(CIMPP::EquivalentShunt *shunt) {
-  SPDLOG_LOGGER_INFO(mSLog, "Found shunt {}", shunt->name);
+  SPDLOG_LOGGER_INFO(mSLog, "Found shunt {}", shunt->name.value);
 
   Real baseVoltage = determineBaseVoltageAssociatedWithEquipment(shunt);
 
@@ -1090,7 +1090,7 @@ Real Reader::determineBaseVoltageAssociatedWithEquipment(
     if (CIMPP::BaseVoltage *baseVolt =
             dynamic_cast<CIMPP::BaseVoltage *>(obj)) {
       for (auto comp : baseVolt->ConductingEquipment) {
-        if (comp->name == equipment->name) {
+        if (comp->name.value == equipment->name.value) {
           baseVoltage =
               unitValue(baseVolt->nominalVoltage.value, UnitMultiplier::k);
         }
@@ -1103,7 +1103,7 @@ Real Reader::determineBaseVoltageAssociatedWithEquipment(
       if (CIMPP::TopologicalNode *topNode =
               dynamic_cast<CIMPP::TopologicalNode *>(obj)) {
         for (auto term : topNode->Terminal) {
-          if (term->ConductingEquipment->name == equipment->name) {
+          if (term->ConductingEquipment->name.value == equipment->name.value) {
             baseVoltage = unitValue(topNode->BaseVoltage->nominalVoltage.value,
                                     UnitMultiplier::k);
           }
@@ -1125,20 +1125,20 @@ void Reader::processTopologicalNode(CIMPP::TopologicalNode *topNode) {
   if (mPhase == PhaseType::ABC) {
     SPDLOG_LOGGER_INFO(
         mSLog, "TopologicalNode {} phase A as simulation node {} ",
-        topNode->mRID,
+        topNode->mRID.value,
         mPowerflowNodes[topNode->mRID]->matrixNodeIndex(PhaseType::A));
     SPDLOG_LOGGER_INFO(
         mSLog, "TopologicalNode {} phase B as simulation node {}",
-        topNode->mRID,
+        topNode->mRID.value,
         mPowerflowNodes[topNode->mRID]->matrixNodeIndex(PhaseType::B));
     SPDLOG_LOGGER_INFO(
         mSLog, "TopologicalNode {} phase C as simulation node {}",
-        topNode->mRID,
+        topNode->mRID.value,
         mPowerflowNodes[topNode->mRID]->matrixNodeIndex(PhaseType::C));
   } else
     SPDLOG_LOGGER_INFO(mSLog,
                        "TopologicalNode id: {}, name: {} as simulation node {}",
-                       topNode->mRID, topNode->name,
+                       topNode->mRID.value, topNode->name.value,
                        mPowerflowNodes[topNode->mRID]->matrixNodeIndex());
 
   for (auto term : topNode->Terminal) {
@@ -1152,14 +1152,14 @@ void Reader::processTopologicalNode(CIMPP::TopologicalNode *topNode) {
     if (!term->sequenceNumber.initialized)
       term->sequenceNumber = 1;
 
-    SPDLOG_LOGGER_INFO(mSLog, "    Terminal {}, sequenceNumber {}", term->mRID,
+    SPDLOG_LOGGER_INFO(mSLog, "    Terminal {}, sequenceNumber {}", term->mRID.value,
                        (int)term->sequenceNumber);
 
     // Try to process Equipment connected to Terminal.
     CIMPP::ConductingEquipment *equipment = term->ConductingEquipment;
     if (!equipment) {
       SPDLOG_LOGGER_WARN(mSLog, "Terminal {} has no Equipment, ignoring!",
-                         term->mRID);
+                         term->mRID.value);
     } else {
       // Insert Equipment if it does not exist in the map and add reference to Terminal.
       // This could be optimized because the Equipment is searched twice.
@@ -1170,7 +1170,7 @@ void Reader::processTopologicalNode(CIMPP::TopologicalNode *topNode) {
           mPowerflowEquipment.insert(std::make_pair(equipment->mRID, comp));
         } else {
           SPDLOG_LOGGER_WARN(mSLog, "Could not map equipment {}",
-                             equipment->mRID);
+                             equipment->mRID.value);
           continue;
         }
       }
@@ -1178,7 +1178,7 @@ void Reader::processTopologicalNode(CIMPP::TopologicalNode *topNode) {
       auto pfEquipment = mPowerflowEquipment.at(equipment->mRID);
       if (pfEquipment == nullptr) {
         SPDLOG_LOGGER_ERROR(mSLog, "Equipment {} is null in equipment list",
-                            equipment->mRID);
+                            equipment->mRID.value);
         throw SystemError("Equipment is null in equipment list.");
       }
       std::dynamic_pointer_cast<SimPowerComp<VarType>>(pfEquipment)
@@ -1187,7 +1187,7 @@ void Reader::processTopologicalNode(CIMPP::TopologicalNode *topNode) {
                           term->sequenceNumber - 1);
 
       SPDLOG_LOGGER_INFO(mSLog, "        Added Terminal {} to Equipment {}",
-                         term->mRID, equipment->mRID);
+                         term->mRID.value, equipment->mRID.value);
     }
   }
 }

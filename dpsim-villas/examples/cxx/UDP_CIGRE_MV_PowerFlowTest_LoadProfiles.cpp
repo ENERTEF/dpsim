@@ -67,11 +67,17 @@ int main(int argc, char **argv) {
   sim.setDomain(args.solver.domain);
   sim.setSolverType(args.solver.type);
 
+  auto env_or_default = [](const char* key, const std::string& _default){
+    const char* val = std::getenv(key);
+    return val ? val : _default;
+  };
   // Register exportable node voltages
+  std::string ip = env_or_default("RECEIVER_IP","localhost");
+  std::string port = env_or_default("UDP_PORT","8080");
   std::string signalOutConfig = fmt::format(R"STRING(
     "out": {{
-      "address": "137.226.248.61:31809",
-      "signals": [)STRING");
+      "address": "{}:{}",
+      "signals": [)STRING",ip,port);
 
   for (size_t i = 0; i < sys.mNodes.size(); ++i) {
     auto n = sys.mNodes[i];

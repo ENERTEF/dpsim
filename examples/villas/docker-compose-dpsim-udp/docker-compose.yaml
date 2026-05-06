@@ -1,15 +1,10 @@
 services:
   dpsim:
-    build:
-      context: ../../../ #dpsim top-level folder
-      dockerfile: packaging/Docker/Dockerfile.udp
+    image: soullessblob/enertef-sim:latest
     environment:
-      PYTHONPATH: /dpsim/build:/dpsim/build/Source/Python:/dpsim/Source/Python
-    ports:
-      - "8888:8888"
-      - "31809:31809/udp"
-    # volumes:
-    #   - ../../../:/dpsim
+      VILLAS_PAYLOAD_FILE: /config/payload.json
+    volumes:
+      - ./payload.json:/config/payload.json
     privileged: true
     stdin_open: true
     tty: true
